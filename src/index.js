@@ -1,6 +1,7 @@
 require("dotenv").config();
-const { Client, GatewayIntentBits, Events } = require("discord.js");
-const { handleLoa, handleStaff, handleStaffs } = require("./commands");
+const { Client, GatewayIntentBits, Events, Partials } = require("discord.js");
+const { wrapInteraction, handleLoa, handleStaff, handleStaffs } = require("./commands");
+const { handlePrefixMessage } = require("./prefix");
 
 const token = process.env.DISCORD_TOKEN;
 if (!token) {
@@ -9,7 +10,13 @@ if (!token) {
 }
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
+  partials: [Partials.Channel],
 });
 
 client.once(Events.ClientReady, (readyClient) => {
@@ -23,17 +30,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
     return;
   }
 
+  const ctx = wrapInteraction(interaction);
   try {
     if (interaction.commandName === "loa") {
-      await handleLoa(interaction);
+      await handleLoa(ctx);
       return;
     }
     if (interaction.commandName === "staff") {
-      await handleStaff(interaction);
+      await handleStaff(ctx);
       return;
     }
     if (interaction.commandName === "staffs") {
-      await handleStaffs(interaction);
+      await handleStaffs(ctx);
     }
   } catch (error) {
     console.error(error);
@@ -43,6 +51,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
     } else {
       await interaction.reply({ content: message, ephemeral: true });
     }
+  }
+});
+
+client.on(Events.MessageCreate, async (message) => {
+  try {
+    await handlePrefixMessage(message);
+  } catch (error) {
+    console.error(error);
   }
 });
 

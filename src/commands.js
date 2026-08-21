@@ -16,43 +16,55 @@ function loaEmbed() {
     .setDescription(LOA_RULES.map((rule, i) => `**${i + 1}.** ${rule}`).join("\n\n"));
 }
 
-async function resolveMember(interaction, user) {
+async function resolveMember(ctx, user) {
   try {
-    return await interaction.guild.members.fetch(user.id);
+    return await ctx.guild.members.fetch(user.id);
   } catch {
     return null;
   }
 }
 
-async function handleLoa(interaction) {
-  const sub = interaction.options.getSubcommand();
+function wrapInteraction(interaction) {
+  return {
+    user: interaction.user,
+    guild: interaction.guild,
+    memberPermissions: interaction.memberPermissions,
+    getSubcommand: () => interaction.options.getSubcommand(),
+    getString: (name, required = false) => interaction.options.getString(name, required),
+    getUser: (name, required = false) => interaction.options.getUser(name, required),
+    reply: (options) => interaction.reply(options),
+  };
+}
+
+async function handleLoa(ctx) {
+  const sub = ctx.getSubcommand();
 
   if (sub === "rules") {
-    await interaction.reply({ embeds: [loaEmbed()] });
+    await ctx.reply({ embeds: [loaEmbed()] });
     return;
   }
 
   if (sub === "status") {
-    const status = interaction.options.getString("status", true);
-    const reason = interaction.options.getString("reason", true);
+    const status = ctx.getString("status", true);
+    const reason = ctx.getString("reason", true);
     const active = status === "active";
-    const existing = db.getStaff(interaction.user.id);
+    const existing = db.getStaff(ctx.user.id);
 
     if (!existing) {
-      await interaction.reply({
+      await ctx.reply({
         content: "You are not in the staff database. Ask a manager to run `/staff add` first.",
         ephemeral: true,
       });
       return;
     }
 
-    db.setLoa(interaction.user.id, active, reason);
-    await interaction.reply({
+    db.setLoa(ctx.user.id, active, reason);
+    await ctx.reply({
       embeds: [
         new EmbedBuilder()
           .setColor(active ? 0xf1c40f : 0x57f287)
           .setTitle(active ? "LOA set to active" : "LOA set to inactive")
-          .setDescription(`<@${interaction.user.id}> is now **${active ? "on LOA" : "off LOA"}**.`)
+          .setDescription(`<@${ctx.user.id}> is now **${active ? "on LOA" : "off LOA"}**.`)
           .addFields({ name: "Reason", value: reason }),
       ],
     });
@@ -60,12 +72,12 @@ async function handleLoa(interaction) {
   }
 
   if (sub === "check") {
-    const target = interaction.options.getUser("user");
+    const target = ctx.getUser("user");
 
     if (target) {
       const row = db.getStaff(target.id);
       if (!row) {
-        await interaction.reply({
+        await ctx.reply({
           content: `<@${target.id}> is not in the staff database.`,
           ephemeral: true,
         });
@@ -73,7 +85,7 @@ async function handleLoa(interaction) {
       }
 
       const onLoa = Boolean(row.loa_active);
-      await interaction.reply({
+      await ctx.reply({
         embeds: [
           new EmbedBuilder()
             .setColor(onLoa ? 0xf1c40f : 0x57f287)
@@ -90,7 +102,7 @@ async function handleLoa(interaction) {
 
     const staff = db.listStaff().sort(roleSort);
     if (staff.length === 0) {
-      await interaction.reply({ content: "No staff are registered yet.", ephemeral: true });
+      await ctx.reply({ content: "No staff are registered yet.", ephemeral: true });
       return;
     }
 
@@ -100,7 +112,7 @@ async function handleLoa(interaction) {
       return `<@${row.user_id}> · **${row.role}** · LOA: **${loa}**${reason}`;
     });
 
-    await interaction.reply({
+    await ctx.reply({
       embeds: [
         new EmbedBuilder()
           .setColor(EMBED_COLOR)
@@ -111,21 +123,21 @@ async function handleLoa(interaction) {
   }
 }
 
-async function handleStaff(interaction) {
-  if (!interaction.memberPermissions.has(PermissionFlagsBits.ManageRoles)) {
-    await interaction.reply({
+async function handleStaff(ctx) {
+  if (!ctx.memberPermissions?.has(PermissionFlagsBits.ManageRoles)) {
+    await ctx.reply({
       content: "You need **Manage Roles** to use staff commands.",
       ephemeral: true,
     });
     return;
   }
 
-  const sub = interaction.options.getSubcommand();
-  const user = interaction.options.getUser("user", true);
-  const member = await resolveMember(interaction, user);
+  const sub = ctx.getSubcommand();
+  const user = ctx.getUser("user", true);
+  const member = await resolveMember(ctx, user);
 
   if (sub === "add") {
-    const roleName = interaction.options.getString("role", true);
+    const roleName = ctx.getString("role", true);
     db.addStaff(user.id, roleName);
 
     let extra = "";
@@ -136,7 +148,7 @@ async function handleStaff(interaction) {
       }
     }
 
-    await interaction.reply({
+    await ctx.reply({
       embeds: [
         new EmbedBuilder()
           .setColor(0x57f287)
@@ -150,7 +162,7 @@ async function handleStaff(interaction) {
   if (sub === "remove") {
     const existing = db.getStaff(user.id);
     if (!existing) {
-      await interaction.reply({ content: `<@${user.id}> is not in the staff database.`, ephemeral: true });
+      await ctx.reply({ content: `<@${user.id}> is not in the staff database.`, ephemeral: true });
       return;
     }
 
@@ -159,7 +171,7 @@ async function handleStaff(interaction) {
       await removeStaffRole(member, existing.role);
     }
 
-    await interaction.reply({
+    await ctx.reply({
       embeds: [
         new EmbedBuilder()
           .setColor(0xed4245)
@@ -171,10 +183,10 @@ async function handleStaff(interaction) {
   }
 
   if (sub === "upgrade") {
-    const newRole = interaction.options.getString("new_role", true);
+    const newRole = ctx.getString("new_role", true);
     const existing = db.getStaff(user.id);
     if (!existing) {
-      await interaction.reply({
+      await ctx.reply({
         content: `<@${user.id}> is not in the staff database. Use \`/staff add\` first.`,
         ephemeral: true,
       });
@@ -192,7 +204,7 @@ async function handleStaff(interaction) {
       }
     }
 
-    await interaction.reply({
+    await ctx.reply({
       embeds: [
         new EmbedBuilder()
           .setColor(EMBED_COLOR)
@@ -203,10 +215,10 @@ async function handleStaff(interaction) {
   }
 }
 
-async function handleStaffs(interaction) {
+async function handleStaffs(ctx) {
   const staff = db.listStaff().sort(roleSort);
   if (staff.length === 0) {
-    await interaction.reply({ content: "No staff are registered yet.", ephemeral: true });
+    await ctx.reply({ content: "No staff are registered yet.", ephemeral: true });
     return;
   }
 
@@ -223,7 +235,7 @@ async function handleStaffs(interaction) {
     embed.addFields({ name: role, value: members.join("\n"), inline: false });
   }
 
-  await interaction.reply({
+  await ctx.reply({
     content: staff.map((row) => `<@${row.user_id}>`).join(" "),
     embeds: [embed],
     allowedMentions: { users: staff.map((row) => row.user_id) },
@@ -299,6 +311,7 @@ const commandData = [
 
 module.exports = {
   commandData,
+  wrapInteraction,
   handleLoa,
   handleStaff,
   handleStaffs,

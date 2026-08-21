@@ -21,9 +21,12 @@ const LOA_RULES = [
 
 const EMBED_COLOR = 0x5865f2;
 
+const PREFIXES = ["!", "th"];
+
 module.exports = {
   STAFF_ROLES,
   ROLE_RANK,
   LOA_RULES,
   EMBED_COLOR,
+  PREFIXES,
 };

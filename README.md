@@ -14,6 +14,17 @@ Discord staff + LOA bot (Node.js / discord.js).
 | `/staff remove` `user` | Removes staff from the DB and the Discord role |
 | `/staff upgrade` `user` `new_role` | Swaps the old Discord role for the new one |
 
+Same commands also work with prefixes **`!`** and **`th`**:
+
+```
+!loa rules
+th loa status active family trip
+!loa check @user
+th staffs
+!staff add @user Moderator
+th staff upgrade @user Head Moderator
+```
+
 Staff role presets: TheySix, Manager, Admin, Head Moderator, Moderator, Helper Team.
 
 `/staff` commands require **Manage Roles**. The bot’s role must sit **above** the staff roles it assigns.
@@ -21,7 +32,7 @@ Staff role presets: TheySix, Manager, Admin, Head Moderator, Moderator, Helper T
 ## Setup
 
 1. Create a Discord application + bot at https://discord.com/developers/applications
-2. Enable **Server Members Intent**
+2. Enable **Server Members Intent** and **Message Content Intent** (needed for `!` / `th` prefix commands)
 3. Invite the bot with `bot` + `applications.commands`, and permissions: Send Messages, Embed Links, Mention Everyone (or use user pings), Manage Roles
 4. Copy `.env.example` to `.env` and fill in token, application ID, and guild ID
 5. Create Discord roles whose **names match the presets exactly**
