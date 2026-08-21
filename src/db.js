@@ -6,10 +6,24 @@ const dataFile = path.join(dataDir, "staff.json");
 
 function load() {
   try {
-    return JSON.parse(fs.readFileSync(dataFile, "utf8"));
+    const data = JSON.parse(fs.readFileSync(dataFile, "utf8"));
+    return migrate(data);
   } catch {
-    return { staff: {} };
+    return { schemaVersion: 2, staff: {} };
   }
+}
+
+function migrate(data) {
+  if (!data.staff) data.staff = {};
+  if ((data.schemaVersion ?? 1) >= 2) return data;
+
+  // v1: loa_active true meant "on leave". v2: loa_active true means available to help.
+  for (const row of Object.values(data.staff)) {
+    row.loa_active = !row.loa_active;
+  }
+  data.schemaVersion = 2;
+  save(data);
+  return data;
 }
 
 function save(data) {
@@ -23,7 +37,7 @@ function addStaff(userId, role) {
   data.staff[userId] = {
     user_id: userId,
     role,
-    loa_active: existing?.loa_active ?? false,
+    loa_active: existing?.loa_active ?? true,
     loa_reason: existing?.loa_reason ?? null,
     loa_updated_at: existing?.loa_updated_at ?? null,
   };

@@ -7,7 +7,7 @@ Discord staff + LOA bot (Node.js / discord.js).
 | Command | What it does |
 | --- | --- |
 | `/loa rules` | Shows LOA rules |
-| `/loa status` `status` `reason` | Sets **your** LOA (must already be staff) |
+| `/loa status` `status` `reason` | Sets **your** status: **active** = can help, **inactive** = away / vacation |
 | `/loa check` `[user]` | Lists every staff member and LOA, or one person if `user` is set |
 | `/staffs` | Embed of staff by role, and pings them |
 | `/staff add` `user` `role` | Adds staff to the DB and assigns the Discord role if it exists |
@@ -18,7 +18,7 @@ Same commands also work with prefixes **`!`** and **`th`**:
 
 ```
 !loa rules
-th loa status active family trip
+th loa status inactive family trip
 !loa check @user
 th staffs
 !staff add @user Moderator

@@ -71,7 +71,7 @@ async function handlePrefixMessage(message) {
         const status = (args.shift() || "").toLowerCase();
         const reason = args.join(" ").trim();
         if (!["active", "inactive"].includes(status) || !reason) {
-          await message.reply("Usage: `loa status <active|inactive> <reason>`");
+          await message.reply("Usage: `loa status <active|inactive> <reason>`\n`active` = can help, `inactive` = away / on vacation");
           return true;
         }
         strings.status = status;
