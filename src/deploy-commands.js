@@ -1,30 +1,24 @@
 require("dotenv").config();
-const { REST, Routes } = require("discord.js");
-const { commandData } = require("./commands");
+const { Client, GatewayIntentBits } = require("discord.js");
+const { registerCommands } = require("./registerCommands");
 
 const token = process.env.DISCORD_TOKEN;
-const clientId = process.env.CLIENT_ID;
-const guildId = process.env.GUILD_ID;
-
-if (!token || !clientId) {
-  console.error("Set DISCORD_TOKEN and CLIENT_ID in .env");
+if (!token) {
+  console.error("Set DISCORD_TOKEN in .env");
   process.exit(1);
 }
 
-const rest = new REST({ version: "10" }).setToken(token);
-const body = commandData.map((command) => command.toJSON());
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-async function main() {
-  if (guildId) {
-    await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body });
-    console.log(`Registered ${body.length} guild commands.`);
-  } else {
-    await rest.put(Routes.applicationCommands(clientId), { body });
-    console.log(`Registered ${body.length} global commands (can take up to an hour).`);
+client.once("ready", async () => {
+  try {
+    await registerCommands(client);
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  } finally {
+    client.destroy();
   }
-}
-
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
 });
+
+client.login(token);

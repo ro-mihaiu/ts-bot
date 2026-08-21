@@ -33,17 +33,11 @@ Staff role presets: TheySix, Manager, Admin, Head Moderator, Moderator, Helper T
 
 1. Create a Discord application + bot at https://discord.com/developers/applications
 2. Enable **Server Members Intent** and **Message Content Intent** (needed for `!` / `th` prefix commands)
-3. Invite the bot with `bot` + `applications.commands`, and permissions: Send Messages, Embed Links, Mention Everyone (or use user pings), Manage Roles
-4. Copy `.env.example` to `.env` and fill in token, application ID, and guild ID
+3. Invite the bot with **both** `bot` and `applications.commands` scopes (if you invited with only `bot`, slash commands will never show — kick and re-invite)
+4. Copy `.env.example` to `.env` and set `DISCORD_TOKEN`
 5. Create Discord roles whose **names match the presets exactly**
-6. Install and register commands:
+6. Start the bot (`npm start`). Slash commands register automatically on login.
 
-```bash
-npm install
-npm run deploy
-npm start
-```
-
-On bot-hosting, keep the startup file as `index.js` (the file at the project root). Upload the whole project, set `DISCORD_TOKEN`, `CLIENT_ID`, and `GUILD_ID` in the panel, then run `npm run deploy` once in the console so slash commands register.
+On bot-hosting, keep the startup file as `index.js`. Upload the project, set `DISCORD_TOKEN`, restart, and check the console for `Registered 3 slash commands`. Then type `/` in Discord; you should see the bot’s icon next to `/loa`, `/staff`, and `/staffs`.
 
 Edit LOA text in `src/config.js`. Staff data is stored in `data/staff.json`.

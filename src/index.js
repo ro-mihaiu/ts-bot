@@ -2,6 +2,7 @@ require("dotenv").config();
 const { Client, GatewayIntentBits, Events, Partials } = require("discord.js");
 const { wrapInteraction, handleLoa, handleStaff, handleStaffs } = require("./commands");
 const { handlePrefixMessage } = require("./prefix");
+const { registerCommands } = require("./registerCommands");
 
 const token = process.env.DISCORD_TOKEN;
 if (!token) {
@@ -19,8 +20,22 @@ const client = new Client({
   partials: [Partials.Channel],
 });
 
-client.once(Events.ClientReady, (readyClient) => {
+client.once(Events.ClientReady, async (readyClient) => {
   console.log(`Logged in as ${readyClient.user.tag}`);
+  try {
+    await registerCommands(readyClient);
+  } catch (error) {
+    console.error("Failed to register slash commands:", error);
+  }
+});
+
+client.on(Events.GuildCreate, async (guild) => {
+  try {
+    await registerCommands(client);
+    console.log(`Joined ${guild.name}; slash commands refreshed.`);
+  } catch (error) {
+    console.error("Failed to register slash commands for new guild:", error);
+  }
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
