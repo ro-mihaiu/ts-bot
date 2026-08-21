@@ -2,7 +2,7 @@
   "name": "ts-bot",
   "version": "1.0.0",
   "description": "Discord staff and LOA management bot",
-  "main": "src/index.js",
+  "main": "index.js",
   "scripts": {
     "start": "node src/index.js",
     "deploy": "node src/deploy-commands.js"

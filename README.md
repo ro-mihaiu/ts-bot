@@ -33,4 +33,6 @@ npm run deploy
 npm start
 ```
 
+On bot-hosting, keep the startup file as `index.js` (the file at the project root). Upload the whole project, set `DISCORD_TOKEN`, `CLIENT_ID`, and `GUILD_ID` in the panel, then run `npm run deploy` once in the console so slash commands register.
+
 Edit LOA text in `src/config.js`. Staff data is stored in `data/staff.json`.
