@@ -17,8 +17,6 @@ function embedReply({ color = EMBED_COLOR, title, description, fields, ephemeral
   if (fields) embed.addFields(fields);
   return { embeds: [embed], allowedMentions: NO_PING, ephemeral };
 }
-  return (ROLE_RANK[a.role] ?? 99) - (ROLE_RANK[b.role] ?? 99);
-}
 
 function loaEmbed() {
   return new EmbedBuilder()
